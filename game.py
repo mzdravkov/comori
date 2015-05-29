@@ -5,6 +5,7 @@ class Game:
         self.program = program
         self.ui = ui
         self.players = [Player(), Player()]
+        self.turn = 0
 
     def handle(self, event, args):
         print(event)

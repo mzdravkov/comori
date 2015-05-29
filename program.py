@@ -1,4 +1,4 @@
-# from game import Game
+from game import Game
 from main_menu import MainMenu
 # from ui import UI
 
@@ -23,3 +23,11 @@ class Program:
 
     def start(self):
         self.ui.start()
+
+    def gameLoop(self, task):
+        if type(self.current()) == MainMenu:
+            self.ui.drawMainMenu()
+        elif type(self.current()) == Game:
+            self.ui.drawGame()
+
+        return task.cont
