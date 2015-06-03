@@ -10,3 +10,21 @@ class UIInterface():
 
     def drawOptions(self):
         raise NotImplementedError
+
+    def destroyMainMenu(self):
+        raise NotImplementedError
+
+    def destroyGame(self):
+        raise NotImplementedError
+
+    def destroyOptions(self):
+        raise NotImplementedError
+
+    def getCameraCoords(self):
+        raise NotImplementedError
+
+    def setCameraCoords(self, x, y, z):
+        raise NotImplementedError
+
+    def getMouseCoords(self):
+        raise NotImplementedError

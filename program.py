@@ -24,10 +24,18 @@ class Program:
     def start(self):
         self.ui.start()
 
-    def gameLoop(self, task):
+    def programLoop(self, task):
+        if not hasattr(self, 'last'):
+            self.last = self.current()
+        elif self.current() != self.last:
+            getattr(self.ui, 'destroy' + type(self.last).__name__)()
+            self.last = self.current()
+
         if type(self.current()) == MainMenu:
             self.ui.drawMainMenu()
         elif type(self.current()) == Game:
-            self.ui.drawGame()
+            self.current().gameLoop()
+            self.ui.drawGame(self.current())
+
 
         return task.cont
