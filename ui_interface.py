@@ -28,3 +28,6 @@ class UIInterface():
 
     def getMouseCoords(self):
         raise NotImplementedError
+
+    def highlight(self):
+        raise NotImplementedError

@@ -31,6 +31,8 @@ class Program:
             getattr(self.ui, 'destroy' + type(self.last).__name__)()
             self.last = self.current()
 
+        self.ui.highlight()
+
         if type(self.current()) == MainMenu:
             self.ui.drawMainMenu()
         elif type(self.current()) == Game:

@@ -9,10 +9,53 @@ from panda3d.core import AmbientLight
 from panda3d.core import VBase4
 from panda3d.core import LPoint3, LVector3, BitMask32, Vec4
 from panda3d.core import Texture
+from panda3d.core import CollisionTraverser, CollisionNode
+from panda3d.core import CollisionHandlerQueue, CollisionRay
+from panda3d.core import CollisionSphere
 import sys
 
 class MyApp(ShowBase):
-    pass
+    def __init__(self):
+        ShowBase.__init__(self)
+
+        self.highlightableObjects = render.attachNewNode('highlightables')
+        self.setupColisionForHighlight()
+
+    def setupColisionForHighlight(self):
+        # Since we are using collision detection to do picking, we set it up like
+        # any other collision detection system with a traverser and a handler
+        self.picker = CollisionTraverser()  # Make a traverser
+        self.pq = CollisionHandlerQueue()  # Make a handler
+        # Make a collision node for our picker ray
+        self.pickerNode = CollisionNode('mouseRay')
+        # Attach that node to the camera since the ray will need to be positioned
+        # relative to it
+        self.pickerNP = self.camera.attachNewNode(self.pickerNode)
+        # Everything to be picked will use bit 1. This way if we were doing other
+        # collision we could seperate it
+        self.pickerNode.setFromCollideMask(BitMask32.bit(1))
+        self.pickerRay = CollisionRay()  # Make our ray
+        # Add it to the collision node
+        self.pickerNode.addSolid(self.pickerRay)
+        # Register the ray as something that can cause collisions
+        self.picker.addCollider(self.pickerNP, self.pq)
+
+    def highlight(self):
+        if self.mouseWatcherNode.hasMouse():
+            mPos = self.mouseWatcherNode.getMouse()
+
+            # Set the position of the ray based on the mouse position
+            self.pickerRay.setFromLens(self.camNode, mPos.getX(), mPos.getY())
+
+            self.picker.traverse(self.render)
+            if self.pq.getNumEntries() > 0:
+                # This is so we get the closest object.
+                self.pq.sortEntries()
+                pickedObj = self.pq.getEntry(0).getIntoNodePath()
+                pickedObj = pickedObj.findNetTag('id')
+                if not pickedObj.isEmpty():
+                    print(pickedObj.getTag('id'))
+                    return pickedObj
 
 
 class EventHandler(DirectObject.DirectObject):
@@ -101,6 +144,9 @@ class UI(UIInterface):
             return self.app.mouseWatcherNode.getMouse()
         return None
 
+    def highlight(self):
+        return self.app.highlight()
+
     def drawGame(self, game):
         if not hasattr(self, 'gameReady'):
             self.app.disableMouse()
@@ -129,11 +175,19 @@ class UI(UIInterface):
 
             self.app.environ.reparentTo(self.app.render)
 
+            k = 1
             for island in game.board.islands:
                 i = self.app.loader.loadModel('models/island2_104')
                 i.setPos(island.pos[0], island.pos[1], 0)
                 i.setScale(0.05, 0.05, 0.05)
+                # i.setTag('id', str(k))
+                # cs = CollisionSphere(0, 0, 0, 3)
+                # cnodePath = i.attachNewNode(CollisionNode('cnode'))
+                # cnodePath.node().addSolid(cs)
+                # cnodePath.show()
+                # i.reparentTo(self.app.highlightableObjects)
                 i.reparentTo(self.app.render)
+                k += 1
 
             self.gameReady = True
 
