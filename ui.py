@@ -103,31 +103,31 @@ class UI(UIInterface):
 
         if not hasattr(self, 'newGameButton'):
             maps = loader.loadModel('textures/continue_maps.egg')
-            self.newGameButton = DirectButton(geom = (maps.find('**/continue'),
-                                                      maps.find('**/continue_click'),
-                                                      maps.find('**/continue_hover')),
-                                              relief=None,
+            geom = (maps.find('**/continue'),
+                    maps.find('**/continue_click'),
+                    maps.find('**/continue_hover'))
+            self.newGameButton = DirectButton(geom = geom, relief=None,
                                               command=clickNewGameButton)
             setButtonAttributes(self.newGameButton)
             self.newGameButton.setPos(0, 0, .6)
 
         if not hasattr(self, 'optionsButton'):
             maps = loader.loadModel('textures/options_maps.egg')
-            self.optionsButton = DirectButton(geom = (maps.find('**/options'),
-                                                      maps.find('**/options_click'),
-                                                      maps.find('**/options_hover')),
-                                              relief=None,
+            geom = (maps.find('**/options'),
+                    maps.find('**/options_click'),
+                    maps.find('**/options_hover'))
+            self.optionsButton = DirectButton(geom = geom, relief=None,
                                               command=clickOptionsButton)
             setButtonAttributes(self.optionsButton)
             self.optionsButton.setPos(0, 0, .36)
 
         if not hasattr(self, 'exitButton'):
             maps = loader.loadModel('textures/exit_maps.egg')
-            self.exitButton = DirectButton(geom = (maps.find('**/exit'),
-                                                      maps.find('**/exit_click'),
-                                                      maps.find('**/exit_hover')),
-                                              relief=None,
-                                              command=clickExitButton)
+            geom = (maps.find('**/exit'),
+                    maps.find('**/exit_click'),
+                    maps.find('**/exit_hover'))
+            self.exitButton = DirectButton(geom = geom, relief=None,
+                                           command=clickExitButton)
             setButtonAttributes(self.exitButton)
             self.exitButton.setPos(0, 0, .12)
 
