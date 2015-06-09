@@ -18,8 +18,8 @@ class Program:
     def pop(self):
         self.stack = self.stack[:-1]
 
-    def handle(self, *event):
-        self.current().handle(event[0], event[1:])
+    def handle(self, event, *args):
+        self.current().handle(event, args)
 
     def start(self):
         self.ui.start()

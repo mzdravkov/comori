@@ -12,6 +12,7 @@ from panda3d.core import Texture
 from panda3d.core import CollisionTraverser, CollisionNode
 from panda3d.core import CollisionHandlerQueue, CollisionRay
 from panda3d.core import CollisionSphere
+from direct.gui.DirectGui import DirectButton
 import sys
 
 class MyApp(ShowBase):
@@ -82,50 +83,53 @@ class UI(UIInterface):
     def exit(self):
         sys.exit()
 
-    def __setMainMenuTransparency(self):
-        self.newGameButton.setTransparency(TransparencyAttrib.MAlpha)
-        self.optionsButton.setTransparency(TransparencyAttrib.MAlpha)
-        self.exitButton.setTransparency(TransparencyAttrib.MAlpha)
-
     def drawMainMenu(self):
         x = self.app.win.getXSize()
         y = self.app.win.getYSize()
 
         if not hasattr(self, 'background'):
             self.background = OnscreenImage(image = 'textures/main_menu.png')
-        if not hasattr(self, 'newGameButton'):
-            self.newGameButton = OnscreenImage(image = 'textures/continue.png')
-            self.newGameButton.setPos(0, 0, .6)
-            self.newGameButton.setSx(.30)
-            self.newGameButton.setSz(.13)
-        if not hasattr(self, 'optionsButton'):
-            self.optionsButton = OnscreenImage(image = 'textures/options.png')
-            self.optionsButton.setPos(0, 0, .36)
-            self.optionsButton.setSx(.30)
-            self.optionsButton.setSz(.13)
-        if not hasattr(self, 'exitButton'):
-            self.exitButton = OnscreenImage(image = 'textures/exit.png')
-            self.exitButton.setPos(0, 0, .12)
-            self.exitButton.setSx(.30)
-            self.exitButton.setSz(.13)
 
         self.background.setSx(x/y)
 
-        selected = self.program.current().selected
-        if selected == 0:
-            self.newGameButton.setImage('textures/continue_hover.png')
-            self.optionsButton.setImage('textures/options.png')
-            self.exitButton.setImage('textures/exit.png')
-        elif selected == 1:
-            self.newGameButton.setImage('textures/continue.png')
-            self.optionsButton.setImage('textures/options_hover.png')
-            self.exitButton.setImage('textures/exit.png')
-        elif selected == 2:
-            self.newGameButton.setImage('textures/continue.png')
-            self.optionsButton.setImage('textures/options.png')
-            self.exitButton.setImage('textures/exit_hover.png')
+        clickNewGameButton = lambda: self.program.handle('click', 'newGame')
+        clickOptionsButton = lambda: self.program.handle('click', 'options')
+        clickExitButton = lambda: self.program.handle('click', 'exit')
 
-        self.__setMainMenuTransparency()
+        def setButtonAttributes(button):
+            button.setSx(.60)
+            button.setSz(.26)
+            button.setTransparency(TransparencyAttrib.MAlpha)
+
+        if not hasattr(self, 'newGameButton'):
+            maps = loader.loadModel('textures/continue_maps.egg')
+            self.newGameButton = DirectButton(geom = (maps.find('**/continue'),
+                                                      maps.find('**/continue_click'),
+                                                      maps.find('**/continue_hover')),
+                                              relief=None,
+                                              command=clickNewGameButton)
+            setButtonAttributes(self.newGameButton)
+            self.newGameButton.setPos(0, 0, .6)
+
+        if not hasattr(self, 'optionsButton'):
+            maps = loader.loadModel('textures/options_maps.egg')
+            self.optionsButton = DirectButton(geom = (maps.find('**/options'),
+                                                      maps.find('**/options_click'),
+                                                      maps.find('**/options_hover')),
+                                              relief=None,
+                                              command=clickOptionsButton)
+            setButtonAttributes(self.optionsButton)
+            self.optionsButton.setPos(0, 0, .36)
+
+        if not hasattr(self, 'exitButton'):
+            maps = loader.loadModel('textures/exit_maps.egg')
+            self.exitButton = DirectButton(geom = (maps.find('**/exit'),
+                                                      maps.find('**/exit_click'),
+                                                      maps.find('**/exit_hover')),
+                                              relief=None,
+                                              command=clickExitButton)
+            setButtonAttributes(self.exitButton)
+            self.exitButton.setPos(0, 0, .12)
 
     def destroyMainMenu(self):
         self.background.destroy()

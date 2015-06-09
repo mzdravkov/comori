@@ -2,7 +2,7 @@
 from game import Game
 
 class MainMenu:
-    def new_game(self):
+    def newGame(self):
         self.program.push(Game(self.program, self.ui))
 
 
@@ -13,18 +13,14 @@ class MainMenu:
     def __init__(self, program, ui):
         self.program = program
         self.ui = ui
-        self.menu = [('New game', self.new_game),
-                     ('Options', self.options),
-                     ('Exit', ui.exit)]
-        self.selected = 0
 
 
     def handle(self, event, args):
-        if event == 'up':
-            if self.selected > 0:
-                self.selected -= 1
-        elif event == 'down':
-            if self.selected < 2:
-                self.selected += 1
-        elif event == 'enter':
-            self.menu[self.selected][1]()
+        if event == 'click':
+            if args[0] == 'newGame':
+                self.newGame()
+            elif args[0] == 'options':
+                self.options()
+            elif args[0] == 'exit':
+                self.ui.exit()
+
