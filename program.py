@@ -30,12 +30,13 @@ class Program:
         elif self.current() != self.last:
             getattr(self.ui, 'destroy' + type(self.last).__name__)()
             self.last = self.current()
-
-        self.ui.highlight()
+        hovered = self.ui.highlight()
 
         if type(self.current()) == MainMenu:
             self.ui.drawMainMenu()
         elif type(self.current()) == Game:
+            if hovered == None or (hovered.getTag('handler') == 'game'):
+                self.current().hover(hovered)
             self.current().gameLoop()
             self.ui.drawGame(self.current())
 

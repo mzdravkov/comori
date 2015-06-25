@@ -13,7 +13,19 @@ from panda3d.core import CollisionTraverser, CollisionNode
 from panda3d.core import CollisionHandlerQueue, CollisionRay
 from panda3d.core import CollisionSphere
 from direct.gui.DirectGui import DirectButton
+# from direct.showutil import BuildGeometry
 import sys
+import math
+
+def dotproduct(v1, v2):
+  return sum((a*b) for a, b in zip(v1, v2))
+
+def length(v):
+  return math.sqrt(dotproduct(v, v))
+
+def angle(v1, v2):
+  return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))
+
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -153,6 +165,21 @@ class UI(UIInterface):
 
     def drawGame(self, game):
         if not hasattr(self, 'gameReady'):
+            a = self.app.loader.loadModel('models/warrior100')
+            a.setTag('id', '1')
+            a.setTag('handler', 'game')
+            a.setTag('type', 'figure')
+            a.setTag('player', '0')
+            cs = CollisionSphere(0, -.35, 7, 3.5)
+            cnodePath = a.attachNewNode(CollisionNode('cnode'))
+            cnodePath.node().addSolid(cs)
+            # cnodePath.show()
+            a.reparentTo(self.app.highlightableObjects)
+            a.setScale(0.007)
+            a.setPos(0, -.35, 0)
+            # a.reparentTo(self.app.render)
+
+
             self.app.disableMouse()
             self.app.environ = self.app.loader.loadModel('models/plane')
             self.app.sea = self.app.loader.loadTexture('textures/sea.png')
@@ -179,20 +206,23 @@ class UI(UIInterface):
 
             self.app.environ.reparentTo(self.app.render)
 
-            k = 1
+            first = True
             for island in game.board.islands:
                 i = self.app.loader.loadModel('models/island2_104')
-                i.setPos(island.pos[0], island.pos[1], 0)
+                i.setPos(island.pos[0], island.pos[1], 0.001)
                 i.setScale(0.05, 0.05, 0.05)
-                # i.setTag('id', str(k))
-                # cs = CollisionSphere(0, 0, 0, 3)
-                # cnodePath = i.attachNewNode(CollisionNode('cnode'))
-                # cnodePath.node().addSolid(cs)
-                # cnodePath.show()
-                # i.reparentTo(self.app.highlightableObjects)
                 i.reparentTo(self.app.render)
-                k += 1
-
-            self.gameReady = True
-
-
+                for f in range(0, 6):
+                    circle = self.app.loader.loadModel('models/circle')
+                    pos = (island.fields[f][0], island.fields[f][1], 0.4)
+                    circle.setPos(pos)
+                    circle.setScale(0.4)
+                    circle.reparentTo(i)
+                degree = angle((0, 1), island.pos)*180/math.pi
+                if island.pos[0] > 0:
+                    degree *= -1
+                if first:
+                    first = False
+                    continue
+                i.setHpr(degree, 0, 0)
+                self.gameReady = True
