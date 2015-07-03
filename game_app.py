@@ -106,6 +106,19 @@ class GameApp:
                 figure.model.setTag('clickable', 'true')
                 self.modelToFigure[figure.model.getKey()] = figure
 
+                col = 256*int(player.color)
+                # set figure title
+                title = TextNode(str(figure.model.getKey()) + '_title')
+                title.setText('1')
+                title.setCardColor(col, col, col, 1)
+                title.setCardAsMargin(0.1, 0.1, 0.1, 0.1)
+                title.setCardDecal(True)
+                titleNode = self.render.attachNewNode(title)
+                titleNode.reparentTo(figure.model)
+                titleNode.setScale(5)
+                titleNode.setPos(0, 3, 10)
+                titleNode.setBillboardPointEye()
+
     def drawGame(self, game):
         if not self.gameReady:
             self.game = game
@@ -252,7 +265,6 @@ class GameApp:
                         field = self.modelToField[key]
                         board = self.game.board
                         if field in board.possible_moves(self.clicked):
-                            print('make some moving')
                             figure.field.put(None)
                             field.put(figure)
                             figure.model.reparentTo(field.model)
