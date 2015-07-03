@@ -30,3 +30,11 @@ class Board:
         for pos in ISLANDS_POS:
             island = Island(pos)
             self.islands.append(island)
+
+    def possible_moves(self, figure):
+        if figure.hasMoved:
+            return []
+        pred1 = lambda field: field.figure == None
+        pred2 = lambda field: field.figure.player != figure.player
+        island = figure.field.island
+        return [field for field in island.fields if pred1(field) or pred2(field)]

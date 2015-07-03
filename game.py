@@ -12,15 +12,28 @@ class Game:
 
     def setupFigures(self):
         for player in self.players:
+            island = None
             if player.color == '0':
-                island = self.board.islands[-1]
+                island = self.board.islands[-3]
+            else:
+                island = self.board.islands[-2]
 
-                field = island.fields[0]
-                field.put(King(field, player))
-                player.figures.append(field.figure)
-                field = island.fields[1]
-                field.put(Warrior(field, player))
-                player.figures.append(field.figure)
-                field = island.fields[2]
-                field.put(Peasant(field, player))
-                player.figures.append(field.figure)
+            field = island.fields[0]
+            field.put(King(field, player))
+            player.figures.append(field.figure)
+            field = island.fields[1]
+            field.put(Warrior(field, player))
+            player.figures.append(field.figure)
+            field = island.fields[2]
+            field.put(Peasant(field, player))
+            player.figures.append(field.figure)
+
+    def __unfreezeFigures(self, player):
+        for figure in player.figures:
+            figure.hasMoved = False
+
+    def changeTurn(self):
+        if self.turn == 1:
+            self.turn = -1;
+        self.turn += 1
+        self.__unfreezeFigures(self.players[self.turn])

@@ -6,4 +6,8 @@ class Field:
         self.figure = None
 
     def put(self, figure):
+        if self.figure != None:
+            self.figure.field = None
         self.figure = figure
+        if figure != None:
+            figure.field = self

@@ -58,7 +58,7 @@ class MyApp(ShowBase, MainMenu, GameApp):
             if not self.hasDrawnMainMenu:
                 self.drawMainMenu()
         elif type(self.current()) == Game:
-            if hovered == None or (hovered.getTag('handler') == 'game'):
+            if hovered == None or hovered.getTag('highlightable') == 'true':
                 self.hoverFigure(hovered)
             self.moveCamera()
             self.drawGame(self.current())

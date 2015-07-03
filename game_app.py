@@ -14,6 +14,7 @@ from panda3d.core import TextNode
 from direct.gui.OnscreenText import OnscreenText
 
 from game import Game
+from figure import Figure
 import math
 
 HIGHLIGHT_SCALE = 1.25
@@ -33,7 +34,10 @@ class GameApp:
         self.camLimits = ((-5, 5), (-6.5, 5), (1, 10))
         self.gameReady = False
         self.hovered = None
-        self.highlightableObjects = render.attachNewNode('highlightables')
+        self.clicked = None
+        self.modelToFigure = {}
+        self.modelToField = {}
+        # self.highlightableObjects = render.attachNewNode('highlightables')
         self.setupColisionForHighlight()
 
     def setupColisionForHighlight(self):
@@ -76,15 +80,20 @@ class GameApp:
             circle.setPos(pos)
             circle.setScale(0.4)
             circle.reparentTo(island.model)
+            circle.setTag('clickable', 'true')
+            cs = CollisionSphere(0, 0, 0, 1)
+            cnodePath = circle.attachNewNode(CollisionNode('cnode'))
+            cnodePath.node().addSolid(cs)
             island.fields[f].model = circle
+            self.modelToField[circle.getKey()] = island.fields[f]
         degree = angle((0, 1), island.pos)*180/math.pi
         if island.pos[0] > 0:
             degree *= -1
         if not suppressRot:
             island.model.setHpr(degree, 0, 0)
 
-    def drawFigures(self, game):
-        for player in game.players:
+    def drawFigures(self):
+        for player in self.game.players:
             for figure in player.figures:
                 field = figure.field
                 figure.model = self.loader.loadModel(figure.modelFile)
@@ -93,12 +102,13 @@ class GameApp:
                 cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
                 cnodePath.node().addSolid(cs)
                 figure.model.setScale(0.35)
-
-
+                figure.model.setTag('highlightable', 'true')
+                figure.model.setTag('clickable', 'true')
+                self.modelToFigure[figure.model.getKey()] = figure
 
     def drawGame(self, game):
-        # if not hasattr(self, 'gameReady'):
         if not self.gameReady:
+            self.game = game
             # setup the background of the board
             self.environ = self.loader.loadModel('models/plane')
             sea = self.loader.loadTexture('textures/sea.png')
@@ -133,7 +143,7 @@ class GameApp:
                 self.drawIsland(island, first)
                 first = False
             game.setupFigures()
-            self.drawFigures(game)
+            self.drawFigures()
             self.turn = OnscreenText(text = 'Black\'s turn.',
                                      pos = (0.06, -0.1),
                                      align = TextNode.ALeft,
@@ -206,9 +216,9 @@ class GameApp:
                 # This is so we get the closest object.
                 self.pq.sortEntries()
                 pickedObj = self.pq.getEntry(0).getIntoNodePath()
-                pickedObj = pickedObj.findNetTag('id')
+                # pick the model and not the cnode
+                pickedObj = pickedObj.findNetTag('clickable')
                 if not pickedObj.isEmpty():
-                    print(pickedObj.getTag('id'))
                     return pickedObj
 
     def handle(self, event, *args):
@@ -224,14 +234,31 @@ class GameApp:
             if z < self.camLimits[2][1]:
                 self.setCameraCoords(x, y, z + 1)
         elif event == 'enter':
-            game = self.current()
-            if game.turn == 1:
-                game.turn = -1
-            game.turn += 1
+            self.game.changeTurn()
         elif event == 'left_click':
-            if hasattr(self, 'hovered'):
-                print('clicked')
-                print(self.hovered.getTag('id'))
+            obj = self.highlight()
+            if obj != None:
+                key = obj.getKey()
+                # if it's a figure
+                if key in self.modelToFigure:
+                    figure = self.modelToFigure[key]
+                    # if self.clicked:
+                    print('figure')
+                    self.clicked = figure
+                # if it's a field
+                if key in self.modelToField:
+                    if self.clicked and isinstance(self.clicked, Figure):
+                        figure = self.clicked
+                        field = self.modelToField[key]
+                        board = self.game.board
+                        if field in board.possible_moves(self.clicked):
+                            print('make some moving')
+                            figure.field.put(None)
+                            field.put(figure)
+                            figure.model.reparentTo(field.model)
+                            figure.hasMoved = True
+            else:
+                self.clicked = None
 
     def hoverFigure(self, hovered):
         if self.hovered != None:
@@ -240,7 +267,8 @@ class GameApp:
             self.hovered.setScale(reverseFactor)
         self.hovered = None
         if hovered != None:
-            if hovered.getTag('player') != str(self.current().turn):
+            figure = self.modelToFigure[hovered.getKey()]
+            if figure.player.color != str(self.current().turn):
                 return
             self.hovered = hovered
             factor = HIGHLIGHT_SCALE * hovered.getScale()[0]
