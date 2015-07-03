@@ -1,3 +1,4 @@
 class Figure:
-    def __init__(self):
-        pass
+    def __init__(self, field, player):
+        self.field = field
+        self.player = player

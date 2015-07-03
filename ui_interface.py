@@ -31,3 +31,7 @@ class UIInterface():
 
     def highlight(self):
         raise NotImplementedError
+
+    def hover(self, ):
+        raise NotImplementedError
+

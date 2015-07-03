@@ -4,6 +4,7 @@ from peasant import Peasant
 
 
 class Player:
-    def __init__(self):
-        self.figures = [King(), Warrior(), Peasant()]
+    def __init__(self, color):
+        self.figures = []
         self.buildings = []
+        self.color = color

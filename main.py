@@ -1,7 +1,8 @@
 from program import Program
-from ui import UI
+from ui import MyApp
 
-ui = UI()
-prog = Program(ui)
-ui.program = prog
-prog.start()
+ui = MyApp().run()
+# ui.start()
+# prog = Program(ui)
+# ui.program = prog
+# prog.start()
