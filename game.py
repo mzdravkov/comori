@@ -3,6 +3,7 @@ from board import Board
 from warrior import Warrior
 from king import King
 from peasant import Peasant
+from ship import Ship
 
 class Game:
     def __init__(self,):
@@ -26,6 +27,9 @@ class Game:
             player.figures.append(field.figure)
             field = island.fields[2]
             field.put(Peasant(field, player))
+            player.figures.append(field.figure)
+            field = island.bay
+            field.put(Ship(field, player))
             player.figures.append(field.figure)
 
     def __unfreezeFigures(self, player):

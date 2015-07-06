@@ -12,9 +12,15 @@ from panda3d.core import CollisionTraverser, CollisionNode
 from panda3d.core import CollisionHandlerQueue, CollisionRay
 from panda3d.core import TextNode
 from direct.gui.OnscreenText import OnscreenText
+# from direct.gui.DirectGui import *
+# from direct.gui.OnscreenImage import OnscreenImage
+# from panda3d.core import TransparencyAttrib
+# from panda3d.core import Camera
+# from panda3d.core import NodePath
 
 from game import Game
 from figure import Figure
+from ship import Ship
 import math
 
 HIGHLIGHT_SCALE = 1.25
@@ -37,6 +43,8 @@ class GameApp:
         self.clicked = None
         self.modelToFigure = {}
         self.modelToField = {}
+        self.modelToSeaField = {}
+        self.modelToBuildingField = {}
         # self.highlightableObjects = render.attachNewNode('highlightables')
         self.setupColisionForHighlight()
 
@@ -86,6 +94,33 @@ class GameApp:
             cnodePath.node().addSolid(cs)
             island.fields[f].model = circle
             self.modelToField[circle.getKey()] = island.fields[f]
+
+        for i in range(0, 3):
+            buildingField = island.buildingFields[i]
+            circle = self.loader.loadModel('models/circle')
+            pos = (buildingField.x, buildingField.y, 0.1)
+            circle.setPos(pos)
+            circle.setScale(0.6)
+            circle.reparentTo(island.model)
+            circle.setTag('clickable', 'true')
+            cs = CollisionSphere(0, 0, 0, 1)
+            cnodePath = circle.attachNewNode(CollisionNode('cnode'))
+            cnodePath.node().addSolid(cs)
+            buildingField.model = circle
+            self.modelToBuildingField[circle.getKey()] = buildingField
+
+        # put the bay field
+        circle = self.loader.loadModel('models/circle')
+        pos = (island.bay.x, island.bay.y, 0.2)
+        circle.setPos(pos)
+        circle.setScale(0.6)
+        circle.reparentTo(island.model)
+        circle.setTag('clickable', 'true')
+        cs = CollisionSphere(0, 0, 0, 1)
+        cnodePath = circle.attachNewNode(CollisionNode('cnode'))
+        cnodePath.node().addSolid(cs)
+        island.bay.model = circle
+        self.modelToSeaField[circle.getKey()] = island.bay
         degree = angle((0, 1), island.pos)*180/math.pi
         if island.pos[0] > 0:
             degree *= -1
@@ -95,33 +130,72 @@ class GameApp:
     def drawFigures(self):
         for player in self.game.players:
             for figure in player.figures:
-                field = figure.field
-                figure.model = self.loader.loadModel(figure.modelFile)
-                figure.model.reparentTo(field.model)
-                cs = CollisionSphere(0, -.35, 7, 3.5)
-                cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
-                cnodePath.node().addSolid(cs)
-                figure.model.setScale(0.35)
-                figure.model.setTag('highlightable', 'true')
-                figure.model.setTag('clickable', 'true')
-                self.modelToFigure[figure.model.getKey()] = figure
+                if type(figure) == Ship:
+                    field = figure.field
+                    figure.model = self.loader.loadModel('models/ship')
+                    figure.model.reparentTo(field.model)
+                    cs = CollisionSphere(1.5, 0, 1, 1.3)
+                    cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
+                    cnodePath.node().addSolid(cs)
+                    # cnodePath.show()
+                    cs = CollisionSphere(0, 0, 1.4, 1.3)
+                    cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
+                    cnodePath.node().addSolid(cs)
+                    # cnodePath.show()
+                    cs = CollisionSphere(-1.8, 0, 1, 1)
+                    cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
+                    cnodePath.node().addSolid(cs)
+                    # cnodePath.show()
+                    figure.model.setScale(1.4)
+                    figure.model.setHpr(90, 0, 0)
+                    # figure.model.setTag('highlightable', 'true')
+                    figure.model.setTag('clickable', 'true')
+                    self.modelToFigure[figure.model.getKey()] = figure
+                else:
+                    field = figure.field
+                    figure.model = self.loader.loadModel('models/warrior100')
+                    figure.model.reparentTo(field.model)
+                    cs = CollisionSphere(0, -.35, 7, 1)
+                    cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
+                    cnodePath.node().addSolid(cs)
+                    figure.model.setScale(0.35)
+                    figure.model.setTag('highlightable', 'true')
+                    figure.model.setTag('clickable', 'true')
+                    self.modelToFigure[figure.model.getKey()] = figure
 
-                col = 256*int(player.color)
-                # set figure title
-                title = TextNode(str(figure.model.getKey()) + '_title')
-                title.setText('1')
-                title.setCardColor(col, col, col, 1)
-                title.setCardAsMargin(0.1, 0.1, 0.1, 0.1)
-                title.setCardDecal(True)
-                titleNode = self.render.attachNewNode(title)
-                titleNode.reparentTo(figure.model)
-                titleNode.setScale(5)
-                titleNode.setPos(0, 3, 10)
-                titleNode.setBillboardPointEye()
+                    col = 256*int(player.color)
+                    # set figure title
+                    title = TextNode(str(figure.model.getKey()) + '_title')
+                    title.setText('1')
+                    title.setCardColor(col, col, col, 1)
+                    title.setCardAsMargin(0.1, 0.1, 0.1, 0.1)
+                    title.setCardDecal(True)
+                    titleNode = self.render.attachNewNode(title)
+                    titleNode.reparentTo(figure.model)
+                    titleNode.setScale(5)
+                    titleNode.setPos(0, 3, 10)
+                    titleNode.setBillboardPointEye()
+
+    def drawSeaways(self):
+        for field in self.game.board.seawayFields:
+            circle = self.loader.loadModel('models/circle')
+            pos = (field.x, field.y, 0)
+            circle.setPos(pos)
+            circle.setScale(0.04)
+            circle.reparentTo(self.render)
+            circle.setTag('clickable', 'true')
+            cs = CollisionSphere(0, 0, 0, 1)
+            cnodePath = circle.attachNewNode(CollisionNode('cnode'))
+            cnodePath.node().addSolid(cs)
+            field.model = circle
+            self.modelToSeaField[circle.getKey()] = field
 
     def drawGame(self, game):
         if not self.gameReady:
             self.game = game
+            # menu = OnscreenImage(image = 'textures/menu.png', pos = (1.53, 0, 0), scale=(0.35, 1, 1))
+            # menu.setTransparency(TransparencyAttrib.MAlpha)
+
             # setup the background of the board
             self.environ = self.loader.loadModel('models/plane')
             sea = self.loader.loadTexture('textures/sea.png')
@@ -155,8 +229,13 @@ class GameApp:
                 island.model = self.loader.loadModel('models/island2_104')
                 self.drawIsland(island, first)
                 first = False
+
+            # NOT HERE!
             game.setupFigures()
+
             self.drawFigures()
+            self.drawSeaways()
+
             self.turn = OnscreenText(text = 'Black\'s turn.',
                                      pos = (0.06, -0.1),
                                      align = TextNode.ALeft,
@@ -168,6 +247,7 @@ class GameApp:
         if game.turn == 1:
             player = 'White'
         self.turn.setText(player + '\'s turn.')
+
 
     def cameraSpeed(self, height, speedRange):
         # Figure out how 'wide' each range is
@@ -234,6 +314,78 @@ class GameApp:
                 if not pickedObj.isEmpty():
                     return pickedObj
 
+    @staticmethod
+    def boardingTransformations(figure, pos):
+        figure.model.setScale(0.2)
+        figure.model.setPos(1 + pos, 0, 1)
+
+    @staticmethod
+    def unboardingTransformations(figure):
+        figure.model.setScale(0.35)
+        figure.model.setPos(0,0,0)
+
+    def clickFigure(self, figure):
+        print('figure')
+        if type(figure) == Ship:
+            ship = figure
+            figure = self.clicked
+            if isinstance(figure, Figure) and type(figure) != Ship:
+                if figure.hasMoved:
+                    self.clicked = ship
+                    return
+                if (figure.field.island == ship.field.island and
+                    figure.player == ship.player and
+                    None in ship.fields):
+                        figure.field.put(None)
+                        pos = 0
+                        if ship.fields[0] == None:
+                            ship.fields[0] = figure
+                        else:
+                            ship.fields[1] = figure
+                            pos = 1
+                        figure.field = ship
+                        figure.model.reparentTo(ship.model)
+                        self.boardingTransformations(figure, pos)
+                        figure.hasMoved = True
+            self.clicked = ship
+        else:
+            self.clicked = figure
+
+    def clickField(self, field):
+        if type(self.clicked) == Ship:
+            return
+        if self.clicked and isinstance(self.clicked, Figure):
+            figure = self.clicked
+            board = self.game.board
+            if figure.hasMoved:
+                return
+            if type(figure.field) == Ship:
+                if field in board.possible_moves(figure.field):
+                    figure.field.removeFigure(figure)
+                    field.put(figure)
+                    figure.model.reparentTo(field.model)
+                    self.unboardingTransformations(figure)
+                    figure.hasMoved = True
+            if field in board.possible_moves(self.clicked):
+                figure.field.put(None)
+                field.put(figure)
+                figure.model.reparentTo(field.model)
+                figure.hasMoved = True
+
+    def clickSeaField(self, field):
+        print(self.clicked)
+        if type(self.clicked) == Ship:
+            figure = self.clicked
+            if field in figure.field.linked:
+                figure.field.put(None)
+                field.put(figure)
+                figure.model.reparentTo(field.model)
+                figure.hasMoved = True
+
+    def clickBuildingField(self, field):
+        print("Gonna build, huh?")
+        print(field)
+
     def handle(self, event, *args):
         print(event)
         if type(self.current()) != Game:
@@ -255,20 +407,19 @@ class GameApp:
                 # if it's a figure
                 if key in self.modelToFigure:
                     figure = self.modelToFigure[key]
-                    # if self.clicked:
-                    print('figure')
-                    self.clicked = figure
-                # if it's a field
+                    self.clickFigure(figure)
+                # if it's a figure field
                 if key in self.modelToField:
-                    if self.clicked and isinstance(self.clicked, Figure):
-                        figure = self.clicked
-                        field = self.modelToField[key]
-                        board = self.game.board
-                        if field in board.possible_moves(self.clicked):
-                            figure.field.put(None)
-                            field.put(figure)
-                            figure.model.reparentTo(field.model)
-                            figure.hasMoved = True
+                    field = self.modelToField[key]
+                    self.clickField(field)
+                # if it's a building field
+                if key in self.modelToBuildingField:
+                    field = self.modelToBuildingField[key]
+                    self.clickBuildingField(field)
+                # if it's a sea field
+                if key in self.modelToSeaField:
+                    field = self.modelToSeaField[key]
+                    self.clickSeaField(field)
             else:
                 self.clicked = None
 
