@@ -1,5 +1,8 @@
 from island import Island
 from field import SeaField
+from warrior import Warrior
+from king import King
+from peasant import Peasant
 import csv
 
 class Board:
@@ -15,7 +18,7 @@ class Board:
         self.setupSeaways()
         self.setupBays()
 
-    def possible_moves(self, figure):
+    def possibleMoves(self, figure):
         pred1 = lambda field: field.figure == None
         pred2 = lambda field: field.figure.player != figure.player
         island = figure.field.island
@@ -58,3 +61,20 @@ class Board:
                     field.linked.append(bay)
                 rowNum += 1
                     # self.seawayFields.append(harbor)
+
+    def possibleSongs(self, island, player):
+        figures = [f.figure for f in island.fields if f.figure != None]
+        figures = [figure for figure in figures if figure.player == player]
+        songs = 0
+        for figure in figures:
+            if type(figure) == King:
+                songs |= 1 << 2
+            elif type(figure) == Warrior:
+                songs |= 1 << 1
+            elif type(figure) == Peasant:
+                songs |= 1
+        return songs
+
+
+
+

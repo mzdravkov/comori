@@ -45,8 +45,11 @@ class GameApp:
         self.modelToField = {}
         self.modelToSeaField = {}
         self.modelToBuildingField = {}
+        self.modelToBuilding = {}
         # self.highlightableObjects = render.attachNewNode('highlightables')
         self.setupColisionForHighlight()
+        self.songMenu = None
+        self.buildMenu = None
 
     def setupColisionForHighlight(self):
         # Since we are using collision detection to do picking, we set it up like
@@ -182,6 +185,7 @@ class GameApp:
             pos = (field.x, field.y, 0)
             circle.setPos(pos)
             circle.setScale(0.04)
+            circle.setHpr(-90, 0, 0)
             circle.reparentTo(self.render)
             circle.setTag('clickable', 'true')
             cs = CollisionSphere(0, 0, 0, 1)
@@ -189,6 +193,13 @@ class GameApp:
             cnodePath.node().addSolid(cs)
             field.model = circle
             self.modelToSeaField[circle.getKey()] = field
+
+    def drawBuilding(self, building, field):
+        model = self.loader.loadModel('models/house')
+        # model.setScale(0.05)
+        model.reparentTo(field.model)
+        building.model = model
+        self.modelToBuilding[model.getKey()] = building
 
     def drawGame(self, game):
         if not self.gameReady:
@@ -324,6 +335,52 @@ class GameApp:
         figure.model.setScale(0.35)
         figure.model.setPos(0,0,0)
 
+    def drawSongsMenu(self, songs, field):
+        if self.songMenu:
+            return
+        self.songMenu = [(OnscreenText(text = 'Choose song:',
+                                      pos = (-0.7, -0.1),
+                                      align = TextNode.ALeft,
+                                      parent = base.a2dTopRight,
+                                      scale = 0.06), field)]
+        i = 1
+        for song in songs:
+            item = OnscreenText(text = str(i) + ') Song of ' + song,
+                                pos = (-0.7, -0.1 - i*0.1),
+                                align = TextNode.ALeft,
+                                parent = base.a2dTopRight,
+                                scale = 0.06)
+            i += 1
+            self.songMenu.append((item, song))
+
+    def destroySongMenu(self):
+        if self.songMenu:
+            for item in self.songMenu:
+                item[0].destroy()
+            self.songMenu = None
+
+    def drawBuildMenu(self, buildings, field):
+        self.buildMenu = [(OnscreenText(text = 'Choose building:',
+                                        pos = (-0.7, -0.1),
+                                        align = TextNode.ALeft,
+                                        parent = base.a2dTopRight,
+                                        scale = 0.06), field)]
+        i = 1
+        for building in buildings:
+            item = OnscreenText(text = str(i) + ') ' + building,
+                                pos = (-0.7, -0.1 - i*0.1),
+                                align = TextNode.ALeft,
+                                parent = base.a2dTopRight,
+                                scale = 0.06)
+            i += 1
+            self.buildMenu.append((item, building))
+
+    def destroyBuildMenu(self):
+        if self.buildMenu:
+            for item in self.buildMenu:
+                item[0].destroy()
+            self.buildMenu = None
+
     def clickFigure(self, figure):
         print('figure')
         if type(figure) == Ship:
@@ -360,22 +417,23 @@ class GameApp:
             if figure.hasMoved:
                 return
             if type(figure.field) == Ship:
-                if field in board.possible_moves(figure.field):
+                if field in board.possibleMoves(figure.field):
                     figure.field.removeFigure(figure)
                     field.put(figure)
                     figure.model.reparentTo(field.model)
                     self.unboardingTransformations(figure)
                     figure.hasMoved = True
-            if field in board.possible_moves(self.clicked):
+            if field in board.possibleMoves(self.clicked):
                 figure.field.put(None)
                 field.put(figure)
                 figure.model.reparentTo(field.model)
                 figure.hasMoved = True
 
     def clickSeaField(self, field):
-        print(self.clicked)
         if type(self.clicked) == Ship:
             figure = self.clicked
+            if figure.hasMoved:
+                return
             if field in figure.field.linked:
                 figure.field.put(None)
                 field.put(figure)
@@ -384,7 +442,9 @@ class GameApp:
 
     def clickBuildingField(self, field):
         print("Gonna build, huh?")
-        print(field)
+        player = self.game.currentPlayer()
+        print(self.game.possibleBuildings(field.island))
+        self.drawSongsMenu(self.game.possibleSongs(field.island), field)
 
     def handle(self, event, *args):
         print(event)
@@ -422,6 +482,29 @@ class GameApp:
                     self.clickSeaField(field)
             else:
                 self.clicked = None
+            if self.songMenu != None:
+                if obj == None or obj.getKey() not in self.modelToBuildingField:
+                    self.destroySongMenu()
+        elif event in [str(i) for i in range(1, 10)]:
+            if self.songMenu:
+                if self.songMenu[0][1] != self.game.board.islands[0]:
+                    song = self.songMenu[int(event)][1]
+                    buildings = self.game.buildings[song]
+                    self.drawBuildMenu(buildings, self.songMenu[0][1])
+                else:
+                    print('CHANGE OBJECTIVES!')
+                self.destroySongMenu()
+                return
+            if self.buildMenu:
+                building = self.buildMenu[int(event)][1]
+                field = self.buildMenu[0][1]
+                building = self.game.build(building, field)
+                if building:
+                    self.drawBuilding(building, field)
+                else:
+                    print('No enough resources!!>@')
+                self.destroyBuildMenu()
+
 
     def hoverFigure(self, hovered):
         if self.hovered != None:

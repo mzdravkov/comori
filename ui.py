@@ -30,6 +30,8 @@ class EventHandler(DirectObject.DirectObject):
         self.accept('arrow_up', app.handle, ['up'])
         self.accept('arrow_down', app.handle, ['down'])
         self.accept('enter', app.handle, ['enter'])
+        for i in range(1, 10):
+            self.accept(str(i), app.handle, [str(i)])
 
 
 class MyApp(ShowBase, MainMenu, GameApp):

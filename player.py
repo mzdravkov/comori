@@ -8,3 +8,4 @@ class Player:
         self.figures = []
         self.buildings = []
         self.color = color
+        self.resources = 50
