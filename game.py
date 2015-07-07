@@ -40,6 +40,8 @@ class Game:
         return buildings
 
     def build(self, building, field):
+        if field.figure != None:
+            return False
         building = Building(building, field)
         player = self.currentPlayer()
         if building.price <= player.resources:

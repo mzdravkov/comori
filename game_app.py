@@ -166,18 +166,21 @@ class GameApp:
                     figure.model.setTag('clickable', 'true')
                     self.modelToFigure[figure.model.getKey()] = figure
 
-                    col = 256*int(player.color)
-                    # set figure title
-                    title = TextNode(str(figure.model.getKey()) + '_title')
-                    title.setText('1')
-                    title.setCardColor(col, col, col, 1)
-                    title.setCardAsMargin(0.1, 0.1, 0.1, 0.1)
-                    title.setCardDecal(True)
-                    titleNode = self.render.attachNewNode(title)
-                    titleNode.reparentTo(figure.model)
-                    titleNode.setScale(5)
-                    titleNode.setPos(0, 3, 10)
-                    titleNode.setBillboardPointEye()
+                col = 256*int(player.color)
+                # set figure title
+                title = TextNode(str(figure.model.getKey()) + '_title')
+                title.setText('1')
+                title.setCardColor(col, col, col, 1)
+                title.setCardAsMargin(0.1, 0.1, 0.1, 0.1)
+                title.setCardDecal(True)
+                titleNode = self.render.attachNewNode(title)
+                titleNode.reparentTo(figure.model)
+                titleNode.setScale(5)
+                titleNode.setPos(0, 3, 10)
+                if type(figure) == Ship:
+                    titleNode.setScale(1.5)
+                    titleNode.setPos(-1.5, 0, 3)
+                titleNode.setBillboardPointEye()
 
     def drawSeaways(self):
         for field in self.game.board.seawayFields:
@@ -200,6 +203,19 @@ class GameApp:
         model.reparentTo(field.model)
         building.model = model
         self.modelToBuilding[model.getKey()] = building
+        player = self.game.currentPlayer()
+        col = 256*int(player.color)
+        # set building title
+        title = TextNode(str(building.model.getKey()) + '_title')
+        title.setText('1')
+        title.setCardColor(col, col, col, 1)
+        title.setCardAsMargin(0.1, 0.1, 0.1, 0.1)
+        title.setCardDecal(True)
+        titleNode = self.render.attachNewNode(title)
+        titleNode.reparentTo(building.model)
+        titleNode.setScale(1.5)
+        titleNode.setPos(0, 0, 3)
+        titleNode.setBillboardPointEye()
 
     def drawGame(self, game):
         if not self.gameReady:
@@ -252,12 +268,19 @@ class GameApp:
                                      align = TextNode.ALeft,
                                      parent = base.a2dTopLeft,
                                      scale = 0.06)
+            self.resources = OnscreenText(text = 'Resources: ',
+                                          pos = (0.08, -0.2),
+                                          align = TextNode.ALeft,
+                                          parent = base.a2dTopLeft,
+                                          scale = 0.06)
             self.gameReady = True
 
         player = 'Black'
         if game.turn == 1:
             player = 'White'
         self.turn.setText(player + '\'s turn.')
+        resourcesText = 'Resources: ' + str(self.game.currentPlayer().resources)
+        self.resources.setText(resourcesText)
 
 
     def cameraSpeed(self, height, speedRange):
@@ -502,7 +525,7 @@ class GameApp:
                 if building:
                     self.drawBuilding(building, field)
                 else:
-                    print('No enough resources!!>@')
+                    print('No enough resources or field is taken!!>@')
                 self.destroyBuildMenu()
 
 
