@@ -21,6 +21,7 @@ from direct.gui.OnscreenText import OnscreenText
 from game import Game
 from figure import Figure
 from ship import Ship
+from building import Building
 import math
 
 HIGHLIGHT_SCALE = 1.25
@@ -133,6 +134,8 @@ class GameApp:
     def drawFigures(self):
         for player in self.game.players:
             for figure in player.figures:
+                if hasattr(figure, 'model'):
+                    continue
                 if type(figure) == Ship:
                     field = figure.field
                     figure.model = self.loader.loadModel('models/ship')
@@ -169,13 +172,13 @@ class GameApp:
                 col = 256*int(player.color)
                 # set figure title
                 title = TextNode(str(figure.model.getKey()) + '_title')
-                title.setText('1')
+                title.setText(type(figure).__name__)
                 title.setCardColor(col, col, col, 1)
                 title.setCardAsMargin(0.1, 0.1, 0.1, 0.1)
                 title.setCardDecal(True)
                 titleNode = self.render.attachNewNode(title)
                 titleNode.reparentTo(figure.model)
-                titleNode.setScale(5)
+                titleNode.setScale(3)
                 titleNode.setPos(0, 3, 10)
                 if type(figure) == Ship:
                     titleNode.setScale(1.5)
@@ -204,10 +207,16 @@ class GameApp:
         building.model = model
         self.modelToBuilding[model.getKey()] = building
         player = self.game.currentPlayer()
+        model.setTag('clickable', 'true')
+        cs = CollisionSphere(0, 0, 0, 2)
+        cnodePath = model.attachNewNode(CollisionNode('cnode'))
+        cnodePath.node().addSolid(cs)
+        # cnodePath.show()
+
         col = 256*int(player.color)
         # set building title
         title = TextNode(str(building.model.getKey()) + '_title')
-        title.setText('1')
+        title.setText(building.building)
         title.setCardColor(col, col, col, 1)
         title.setCardAsMargin(0.1, 0.1, 0.1, 0.1)
         title.setCardDecal(True)
@@ -257,9 +266,6 @@ class GameApp:
                 self.drawIsland(island, first)
                 first = False
 
-            # NOT HERE!
-            game.setupFigures()
-
             self.drawFigures()
             self.drawSeaways()
 
@@ -281,7 +287,6 @@ class GameApp:
         self.turn.setText(player + '\'s turn.')
         resourcesText = 'Resources: ' + str(self.game.currentPlayer().resources)
         self.resources.setText(resourcesText)
-
 
     def cameraSpeed(self, height, speedRange):
         # Figure out how 'wide' each range is
@@ -390,7 +395,9 @@ class GameApp:
                                         scale = 0.06), field)]
         i = 1
         for building in buildings:
-            item = OnscreenText(text = str(i) + ') ' + building,
+            price = Building.buildingPrice(building)
+            text = '{0}) {1} ({2})'.format(str(i), building, price)
+            item = OnscreenText(text = text,
                                 pos = (-0.7, -0.1 - i*0.1),
                                 align = TextNode.ALeft,
                                 parent = base.a2dTopRight,
@@ -431,7 +438,13 @@ class GameApp:
         else:
             self.clicked = figure
 
+    def initiateBattle(self):
+        battle = self.game.newBattle()
+        self.push(battle)
+        self.eventHandler.ignoreAll()
+
     def clickField(self, field):
+        print(self.clicked)
         if type(self.clicked) == Ship:
             return
         if self.clicked and isinstance(self.clicked, Figure):
@@ -447,21 +460,61 @@ class GameApp:
                     self.unboardingTransformations(figure)
                     figure.hasMoved = True
             if field in board.possibleMoves(self.clicked):
+                initiateBattle = field.figure != None
                 figure.field.put(None)
                 field.put(figure)
                 figure.model.reparentTo(field.model)
                 figure.hasMoved = True
+                if initiateBattle:
+                    self.initiateBattle()
+        if isinstance(self.clicked, Building):
+            building = self.clicked
+            player = self.game.currentPlayer()
+            if not field.figure or field.figure.player != player:
+                if field.island != building.field.island:
+                    return
+                figure = None
+                battle = field.figure != None and field.figure.player != player
+                if building.building == 'House':
+                    figure = self.game.giveBirthToPeasant(field)
+                elif building.building == 'Barracks':
+                    figure = self.game.giveBirthToWarrior(field)
+                if figure == None:
+                    return
+                if figure:
+                    self.drawFigures()
+                if battle:
+                    self.initiateBattle()
+                else:
+                    print('Not enough resources!')
 
     def clickSeaField(self, field):
         if type(self.clicked) == Ship:
             figure = self.clicked
             if figure.hasMoved:
                 return
+            if field.figure != None:
+                return
             if field in figure.field.linked:
                 figure.field.put(None)
                 field.put(figure)
                 figure.model.reparentTo(field.model)
-                figure.hasMoved = True
+                #TODO right under this comment
+                # figure.hasMoved = True
+        if type(self.clicked) == Building:
+            player = self.game.currentPlayer()
+            building = self.clicked
+            if building.building == 'Harbor':
+                if building.field.island.bay != field:
+                    return
+
+                player = self.game.currentPlayer()
+                if not field.figure or field.figure.player != player:
+                    ship = self.game.buildShip(field)
+                    if ship:
+                        self.drawFigures()
+                    else:
+                        print('Not enough resources')
 
     def clickBuildingField(self, field):
         print("Gonna build, huh?")
@@ -503,6 +556,9 @@ class GameApp:
                 if key in self.modelToSeaField:
                     field = self.modelToSeaField[key]
                     self.clickSeaField(field)
+                # if it's a building
+                if key in self.modelToBuilding:
+                    self.clicked = self.modelToBuilding[key]
             else:
                 self.clicked = None
             if self.songMenu != None:
@@ -525,9 +581,8 @@ class GameApp:
                 if building:
                     self.drawBuilding(building, field)
                 else:
-                    print('No enough resources or field is taken!!>@')
+                    print('Not enough resources or field is taken!!>@')
                 self.destroyBuildMenu()
-
 
     def hoverFigure(self, hovered):
         if self.hovered != None:
@@ -542,3 +597,6 @@ class GameApp:
             self.hovered = hovered
             factor = HIGHLIGHT_SCALE * hovered.getScale()[0]
             hovered.setScale(factor)
+
+# TODO: fix the bug that I'am able to move the enemy's figures
+# TODO: if A attacks B, B has no field and if he tries to move will break the world

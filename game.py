@@ -5,6 +5,12 @@ from king import King
 from peasant import Peasant
 from ship import Ship
 from building import Building
+from battle import Battle
+
+GARDEN_INCOME = 1
+PEASANT_PRICE =  2
+WARRIOR_PRICE = 5
+SHIP_PRICE = 25
 
 class Game:
     def __init__(self,):
@@ -25,6 +31,7 @@ class Game:
                           'Ascent': ['Harbor', 'Library', 'Statue'],
                           'Tirany': ['Prison', 'Rebel camp'],
                           'the Mysteries': ['Shrine']}
+        self.setupFigures()
 
     def possibleSongs(self, island):
         songsBits = self.board.possibleSongs(island, self.currentPlayer())
@@ -79,8 +86,53 @@ class Game:
     def currentPlayer(self):
         return self.players[self.turn]
 
+    def newBattle(self):
+        black = self.players[self.turn]
+        white = self.players[self.turn ^ 1]
+        return Battle(black, white)
+
+    def giveBirthToPeasant(self, field):
+        player = self.currentPlayer()
+        if player.resources >= PEASANT_PRICE:
+            peasant = Peasant(field, player)
+            field.put(peasant)
+            player.resources -= PEASANT_PRICE
+            player.figures.append(peasant)
+            return peasant
+        return False
+
+    def giveBirthToWarrior(self, field):
+        player = self.currentPlayer()
+        if player.resources >= WARRIOR_PRICE:
+            warrior = Warrior(field, player)
+            field.put(warrior)
+            player.resources -= WARRIOR_PRICE
+            player.figures.append(warrior)
+            return warrior
+        return False
+
+    def buildShip(self, field):
+        player = self.currentPlayer()
+        if player.resources >= SHIP_PRICE:
+            ship = Ship(field, player)
+            field.put(ship)
+            player.resources -= SHIP_PRICE
+            player.figures.append(ship)
+            return ship
+        return False
+
+    def __harvestResources(self):
+        player = self.currentPlayer()
+        for building in player.buildings:
+            if building.building == 'Garden':
+                player.resources += GARDEN_INCOME
+
+    def __onTurnStart(self):
+        self.__harvestResources()
+        self.__unfreezeFigures(self.currentPlayer())
+
     def changeTurn(self):
         if self.turn == 1:
             self.turn = -1;
         self.turn += 1
-        self.__unfreezeFigures(self.players[self.turn])
+        self.__onTurnStart()

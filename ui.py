@@ -1,5 +1,4 @@
 # from program import Program
-from ui_interface import UIInterface
 from direct.showbase.ShowBase import ShowBase
 from direct.showbase import DirectObject
 # from direct.gui.OnscreenText import OnscreenText
@@ -19,8 +18,10 @@ from direct.showbase import DirectObject
 
 from main_menu import MainMenu
 from game_app import GameApp
+from battle_app import BattleApp
 
 from game import Game
+from battle import Battle
 
 class EventHandler(DirectObject.DirectObject):
     def __init__(self, app):
@@ -34,11 +35,13 @@ class EventHandler(DirectObject.DirectObject):
             self.accept(str(i), app.handle, [str(i)])
 
 
-class MyApp(ShowBase, MainMenu, GameApp):
+class MyApp(ShowBase, MainMenu, GameApp, BattleApp):
     def __init__(self):
         ShowBase.__init__(self)
         MainMenu.__init__(self)
         GameApp.__init__(self)
+        BattleApp.__init__(self)
+
         self.stack = [MainMenu()]
         self.gameTask = taskMgr.add(self.programLoop, 'programLoop')
         self.eventHandler = EventHandler(self)
@@ -51,7 +54,8 @@ class MyApp(ShowBase, MainMenu, GameApp):
 
     def programLoop(self, task):
         if self.current() != self.last:
-            getattr(self, 'destroy' + type(self.last).__name__)()
+            if type(self.current()) != Battle:
+                getattr(self, 'destroy' + type(self.last).__name__)()
             self.last = self.current()
 
         hovered = self.highlight()
@@ -64,6 +68,8 @@ class MyApp(ShowBase, MainMenu, GameApp):
                 self.hoverFigure(hovered)
             self.moveCamera()
             self.drawGame(self.current())
+        elif type(self.current()) == Battle:
+            self.drawBattle(self.current())
 
         return task.cont
 
