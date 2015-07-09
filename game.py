@@ -64,7 +64,8 @@ class Game:
             if player.color == '0':
                 island = self.board.islands[-3]
             else:
-                island = self.board.islands[-2]
+                # island = self.board.islands[-2]
+                island = self.board.islands[10]
 
             field = island.fields[0]
             field.put(King(field, player))

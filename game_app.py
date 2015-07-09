@@ -12,6 +12,7 @@ from panda3d.core import CollisionTraverser, CollisionNode
 from panda3d.core import CollisionHandlerQueue, CollisionRay
 from panda3d.core import TextNode
 from direct.gui.OnscreenText import OnscreenText
+from direct.showbase import DirectObject
 # from direct.gui.DirectGui import *
 # from direct.gui.OnscreenImage import OnscreenImage
 # from panda3d.core import TransparencyAttrib
@@ -36,8 +37,20 @@ def length(v):
 def angle(v1, v2):
   return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))
 
+class GameEventHandler(DirectObject.DirectObject):
+    def __init__(self, app):
+        self.accept('mouse1', app.handle, ['left_click'])
+        self.accept('wheel_up', app.handle, ['wheel_up'])
+        self.accept('wheel_down', app.handle, ['wheel_down'])
+        self.accept('arrow_up', app.handle, ['up'])
+        self.accept('arrow_down', app.handle, ['down'])
+        self.accept('enter', app.handle, ['enter'])
+        for i in range(1, 10):
+            self.accept(str(i), app.handle, [str(i)])
+
 class GameApp:
     def __init__(self):
+        self.gameEventHandler = GameEventHandler(self)
         self.camLimits = ((-5, 5), (-6.5, 5), (1, 10))
         self.gameReady = False
         self.hovered = None
@@ -441,7 +454,7 @@ class GameApp:
     def initiateBattle(self):
         battle = self.game.newBattle()
         self.push(battle)
-        self.eventHandler.ignoreAll()
+        self.gameEventHandler.ignoreAll()
 
     def clickField(self, field):
         print(self.clicked)
@@ -522,6 +535,7 @@ class GameApp:
         print(self.game.possibleBuildings(field.island))
         self.drawSongsMenu(self.game.possibleSongs(field.island), field)
 
+    # TODO: initiate battle when attack by leaving a ship
     def handle(self, event, *args):
         print(event)
         if type(self.current()) != Game:
@@ -600,3 +614,4 @@ class GameApp:
 
 # TODO: fix the bug that I'am able to move the enemy's figures
 # TODO: if A attacks B, B has no field and if he tries to move will break the world
+# TODO: change collision solids with more appririate on few places (ships, figures?)
