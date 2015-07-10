@@ -24,6 +24,7 @@ from figure import Figure
 from ship import Ship
 from building import Building
 import math
+import time
 
 HIGHLIGHT_SCALE = 1.25
 REVERSE_HIGHLIGHT_SCALE = 1/HIGHLIGHT_SCALE
@@ -300,6 +301,22 @@ class GameApp:
         self.turn.setText(player + '\'s turn.')
         resourcesText = 'Resources: ' + str(self.game.currentPlayer().resources)
         self.resources.setText(resourcesText)
+        if self.game.loosers != None:
+            message = OnscreenText(text = 'End of the game',
+                                   align = TextNode.ACenter,
+                                   pos = (0, 0),
+                                   scale = 0.1)
+            if self.game.loosers == 'black':
+                message.setText('White wins!')
+            elif self.game.loosers == 'white':
+                message.setText('Black wins!')
+            else:
+                message.setText('Nobody wins!')
+
+    def destroyGame(self):
+        children = self.render.getChildren()
+        for child in children:
+            child.removeNode()
 
     def cameraSpeed(self, height, speedRange):
         # Figure out how 'wide' each range is
@@ -447,11 +464,15 @@ class GameApp:
                         figure.model.reparentTo(ship.model)
                         self.boardingTransformations(figure, pos)
                         figure.hasMoved = True
-            self.clicked = ship
+            if ship.player == self.game.currentPlayer():
+                self.clicked = ship
         else:
-            self.clicked = figure
+            if figure.player == self.game.currentPlayer():
+                self.clicked = figure
 
-    def initiateBattle(self):
+    def initiateBattle(self, blackTroops, whiteTroops):
+        self.blackTroops = blackTroops
+        self.whiteTroops = whiteTroops
         battle = self.game.newBattle()
         self.push(battle)
         self.gameEventHandler.ignoreAll()
@@ -468,18 +489,23 @@ class GameApp:
             if type(figure.field) == Ship:
                 if field in board.possibleMoves(figure.field):
                     figure.field.removeFigure(figure)
+                    player = self.game.currentPlayer()
+                    battle = field.figure != None and field.figure.player != player
+                    whiteTroops = field.figure
                     field.put(figure)
                     figure.model.reparentTo(field.model)
                     self.unboardingTransformations(figure)
                     figure.hasMoved = True
+                    self.initiateBattle(figure, whiteTroops)
             if field in board.possibleMoves(self.clicked):
                 initiateBattle = field.figure != None
+                whiteTroops = field.figure
                 figure.field.put(None)
                 field.put(figure)
                 figure.model.reparentTo(field.model)
                 figure.hasMoved = True
                 if initiateBattle:
-                    self.initiateBattle()
+                    self.initiateBattle(figure, whiteTroops)
         if isinstance(self.clicked, Building):
             building = self.clicked
             player = self.game.currentPlayer()
@@ -488,6 +514,7 @@ class GameApp:
                     return
                 figure = None
                 battle = field.figure != None and field.figure.player != player
+                whiteTroops = field.figure
                 if building.building == 'House':
                     figure = self.game.giveBirthToPeasant(field)
                 elif building.building == 'Barracks':
@@ -497,7 +524,7 @@ class GameApp:
                 if figure:
                     self.drawFigures()
                 if battle:
-                    self.initiateBattle()
+                    self.initiateBattle(figure, whiteTroops)
                 else:
                     print('Not enough resources!')
 
@@ -512,8 +539,7 @@ class GameApp:
                 figure.field.put(None)
                 field.put(figure)
                 figure.model.reparentTo(field.model)
-                #TODO right under this comment
-                # figure.hasMoved = True
+                figure.hasMoved = True
         if type(self.clicked) == Building:
             player = self.game.currentPlayer()
             building = self.clicked
@@ -535,7 +561,6 @@ class GameApp:
         print(self.game.possibleBuildings(field.island))
         self.drawSongsMenu(self.game.possibleSongs(field.island), field)
 
-    # TODO: initiate battle when attack by leaving a ship
     def handle(self, event, *args):
         print(event)
         if type(self.current()) != Game:
@@ -549,6 +574,8 @@ class GameApp:
             if z < self.camLimits[2][1]:
                 self.setCameraCoords(x, y, z + 1)
         elif event == 'enter':
+            if self.game.loosers != None:
+                self.pop()
             self.game.changeTurn()
         elif event == 'left_click':
             obj = self.highlight()
@@ -612,6 +639,4 @@ class GameApp:
             factor = HIGHLIGHT_SCALE * hovered.getScale()[0]
             hovered.setScale(factor)
 
-# TODO: fix the bug that I'am able to move the enemy's figures
-# TODO: if A attacks B, B has no field and if he tries to move will break the world
 # TODO: change collision solids with more appririate on few places (ships, figures?)

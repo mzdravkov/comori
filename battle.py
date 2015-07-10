@@ -47,7 +47,6 @@ class Battle:
     def move(self, fields, fromX, fromY, toX, toY):
         deltaX = toX - fromX
         deltaY = toY - fromY
-        print(fields)
         player = fields[fromX][fromY]
         fields[fromX][fromY] = 0
         enemy = 2 if player == 1 else 1
@@ -84,7 +83,6 @@ class Battle:
                 return path
 
             obstacles = union(killedEnemies, friendsHit, wallsHit)
-            print(obstacles)
 
             if deltaX == 0 or deltaY == 0:
                 if obstacles:

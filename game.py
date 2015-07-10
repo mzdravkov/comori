@@ -32,6 +32,7 @@ class Game:
                           'Tirany': ['Prison', 'Rebel camp'],
                           'the Mysteries': ['Shrine']}
         self.setupFigures()
+        self.loosers = None
 
     def possibleSongs(self, island):
         songsBits = self.board.possibleSongs(island, self.currentPlayer())
@@ -128,9 +129,24 @@ class Game:
             if building.building == 'Garden':
                 player.resources += GARDEN_INCOME
 
+    def __checkForLoosers(self):
+        black = False
+        for figure in self.players[0].figures:
+            if type(figure) == King:
+                black = True
+        white = False
+        for figure in self.players[1].figures:
+            if type(figure) == King:
+                white = True
+        if not black:
+            self.loosers = 'black'
+        if not white:
+            self.loosers = 'both' if not black else 'white'
+
     def __onTurnStart(self):
         self.__harvestResources()
         self.__unfreezeFigures(self.currentPlayer())
+        self.__checkForLoosers()
 
     def changeTurn(self):
         if self.turn == 1:

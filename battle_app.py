@@ -27,14 +27,11 @@ class PieceMover(threading.Thread):
 
     def run(self):
         dead = False
-        print(self.moves)
         for move in self.moves:
             moveX, moveY, killed = None, None, None
             if len(move) == 3:
                 moveX, moveY, killed = move
             else:
-                print('llama')
-                print(move)
                 moveX, moveY, killed, dead = move
                 dead = True
             nextField = self.fields[moveX][moveY]
@@ -128,8 +125,10 @@ class BattleApp:
             if not black:
                 print('white wins')
                 turn = self.game.turn
+                field = self.blackTroops.field
                 self.game.players[turn].figures.remove(self.blackTroops)
                 self.blackTroops.model.removeNode()
+                field.put(self.whiteTroops)
             if not black or not white:
                 self.pop()
 
@@ -218,7 +217,3 @@ class BattleApp:
                             self.isMoving = True
                         self.battleTurn = self.battleTurn ^ 1
                     self.clicked = None
-
-
-
-    # TODO: think about destroying battle like menu is destroyed
