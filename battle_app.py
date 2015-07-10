@@ -12,6 +12,8 @@ from panda3d.core import VBase4
 import time
 import threading
 
+from game_app import GameEventHandler
+
 class BattleEventHandler(DirectObject.DirectObject):
     def __init__(self, app):
         self.accept('mouse1', app.battleHandle, ['left_click'])
@@ -101,29 +103,51 @@ class BattleApp:
                     field.reparentTo(self.battleRender)
                     self.battleFields[x].append(field)
 
-
             self.battleReady = True
+
         if self.mover and not self.mover.is_alive():
             self.mover = None
             self.isMoving = False
+            black = False
+            white = False
+            for x in self.battleFields:
+                for y in x:
+                    child = y.getChildren()[-1]
+                    if child.hasTag('piece'):
+                        if child.getMaterial() == self.blackMaterial:
+                            black = True
+                        if child.getMaterial() == self.whiteMaterial:
+                            white = True
+                        if white and black:
+                            return
+            if not white:
+                print('black wins')
+                turn = self.game.turn
+                self.game.players[turn ^ 1].figures.remove(self.whiteTroops)
+                self.whiteTroops.model.removeNode()
+            if not black:
+                print('white wins')
+                turn = self.game.turn
+                self.game.players[turn].figures.remove(self.blackTroops)
+                self.blackTroops.model.removeNode()
+            if not black or not white:
+                self.pop()
 
     def destroyBattle(self):
         self.camera.setPos(0, 0, 10)
-        self.camera.setHpr(0, -70, 0)('models/plane')
-        self.battleBoard.destroy()
-        # TODO check if this works
+        self.camera.setHpr(0, -70, 0)
+        self.battleBoard.removeNode()
         self.gameEventHandler = GameEventHandler(self)
         self.battleEventHandler.ignoreAll()
         self.clicked = None
-        self.mover = None
+        # self.mover = None
         # self.battleFields = None
-        self.isMoving = False
+        # self.isMoving = False
+        for x in self.battleFields:
+            for y in x:
+                y.removeNode()
         self.battleReady = False
 
-    # def battleCurrentPlayer(self):
-    #     if self.battleTurn == 0:
-    #         return self.battle.black
-    #     return self.battle.white
     def normalizeBattleFields(self):
         fields = self.battleFields
         normalized = []
@@ -136,10 +160,7 @@ class BattleApp:
                     normalized[-1].append(0)
                     continue
 
-                print(figure)
                 mat = figure.getMaterial()
-                print(mat)
-                print(self.blackMaterial)
                 if mat == self.blackMaterial:
                     normalized[-1].append(1)
                 else:
