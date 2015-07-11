@@ -1,4 +1,5 @@
 class Field:
+
     def __init__(self, island, x, y):
         self.x = x
         self.y = y
@@ -12,7 +13,9 @@ class Field:
         if figure != None:
             figure.field = self
 
+
 class SeaField(Field):
+
     def __init__(self, x, y, island=None):
         super().__init__(island, x, y)
         self.linked = []

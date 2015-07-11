@@ -1,17 +1,22 @@
 import math
 import functools
 
+
 def sin(angle):
     return math.sin(math.radians(angle))
 
+
 def cos(angle):
     return math.cos(math.radians(angle))
+
 
 def union(*args):
     sets = map(lambda x: set(x), args)
     return list(functools.reduce(lambda x, y: x | y, sets))
 
+
 class Battle:
+
     def __init__(self, player1, player2):
         self.black = player1
         self.white = player2
@@ -32,7 +37,7 @@ class Battle:
 
     def isOutside(self, x, y, fields):
         if (x < 0 or x >= self.width(fields) or
-            y < 0 or y >= self.height(fields)):
+                y < 0 or y >= self.height(fields)):
             return True
         return False
 
@@ -72,7 +77,8 @@ class Battle:
                 path.append((x, y, killedEnemies))
                 return path
 
-            wallsHit = [(x, y) for (x, y) in collNeighs if self.isOutside(x, y, fields)]
+            wallsHit = [(x, y)
+                        for (x, y) in collNeighs if self.isOutside(x, y, fields)]
             common = [1 for x in wallsHit for y in allWallsHits if x == y]
             if common:
                 path.append((x, y, killedEnemies, 'dead'))

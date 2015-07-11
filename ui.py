@@ -1,28 +1,15 @@
-# from program import Program
 from direct.showbase.ShowBase import ShowBase
-# from direct.gui.OnscreenText import OnscreenText
-# from panda3d.core import TransparencyAttrib
-# from panda3d.core import PointLight
-# from panda3d.core import AmbientLight
-# from panda3d.core import VBase4
-# from panda3d.core import LPoint3, LVector3, BitMask32, Vec4
-# from panda3d.core import Texture
-# from panda3d.core import CollisionSphere
-# from panda3d.core import TextNode
-# from direct.task.Task import Task
-
-# from direct.gui.DirectGui import DirectButton
-# from direct.showutil import BuildGeometry
-# import math
 
 from main_menu import MainMenu
 from game_app import GameApp
 from battle_app import BattleApp
 
-from game import Game
-from battle import Battle
+from core.game import Game
+from core.battle import Battle
+
 
 class MyApp(ShowBase, MainMenu, GameApp, BattleApp):
+
     def __init__(self):
         ShowBase.__init__(self)
         MainMenu.__init__(self)
@@ -64,4 +51,3 @@ class MyApp(ShowBase, MainMenu, GameApp, BattleApp):
 
     def pop(self):
         self.stack = self.stack[:-1]
-

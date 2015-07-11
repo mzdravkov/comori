@@ -2,14 +2,13 @@ from direct.gui.OnscreenImage import OnscreenImage
 from panda3d.core import TransparencyAttrib
 from direct.gui.DirectGui import DirectButton
 
-from game import Game
+from core.game import Game
 
 import sys
 
-# from base_ui import BaseUI
 
-# class MainMenu(BaseUI):
 class MainMenu:
+
     def __init__(self):
         self.background = None
         self.newGameButton = None
@@ -20,9 +19,9 @@ class MainMenu:
         x = self.win.getXSize()
         y = self.win.getYSize()
 
-        self.background = OnscreenImage(image = 'textures/main_menu.png')
+        self.background = OnscreenImage(image='textures/main_menu.png')
 
-        self.background.setSx(x/y)
+        self.background.setSx(x / y)
 
         clickNewGameButton = lambda: self.push(Game())
         clickOptionsButton = lambda: self.push('Options')
@@ -37,7 +36,7 @@ class MainMenu:
         geom = (maps.find('**/continue'),
                 maps.find('**/continue_click'),
                 maps.find('**/continue_hover'))
-        self.newGameButton = DirectButton(geom = geom, relief=None,
+        self.newGameButton = DirectButton(geom=geom, relief=None,
                                           command=clickNewGameButton)
         setButtonAttributes(self.newGameButton)
         self.newGameButton.setPos(0, 0, .6)
@@ -46,7 +45,7 @@ class MainMenu:
         geom = (maps.find('**/options'),
                 maps.find('**/options_click'),
                 maps.find('**/options_hover'))
-        self.optionsButton = DirectButton(geom = geom, relief=None,
+        self.optionsButton = DirectButton(geom=geom, relief=None,
                                           command=clickOptionsButton)
         setButtonAttributes(self.optionsButton)
         self.optionsButton.setPos(0, 0, .36)
@@ -55,7 +54,7 @@ class MainMenu:
         geom = (maps.find('**/exit'),
                 maps.find('**/exit_click'),
                 maps.find('**/exit_hover'))
-        self.exitButton = DirectButton(geom = geom, relief=None,
+        self.exitButton = DirectButton(geom=geom, relief=None,
                                        command=clickExitButton)
         setButtonAttributes(self.exitButton)
         self.exitButton.setPos(0, 0, .12)

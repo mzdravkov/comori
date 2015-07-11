@@ -14,11 +14,15 @@ import threading
 
 from game_app import GameEventHandler
 
+
 class BattleEventHandler(DirectObject.DirectObject):
+
     def __init__(self, app):
         self.accept('mouse1', app.battleHandle, ['left_click'])
 
+
 class PieceMover(threading.Thread):
+
     def __init__(self, piece, moves, fields):
         threading.Thread.__init__(self)
         self.moves = moves
@@ -39,10 +43,13 @@ class PieceMover(threading.Thread):
             if dead:
                 self.piece.removeNode()
             for corpse in killed:
-                self.fields[corpse[0]][corpse[1]].getChildren()[-1].removeNode()
+                self.fields[corpse[0]][
+                    corpse[1]].getChildren()[-1].removeNode()
             time.sleep(0.3)
 
+
 class BattleApp:
+
     def __init__(self):
         self.battleReady = False
 
@@ -211,8 +218,10 @@ class BattleApp:
                             return
                         if -1 <= deltaX <= 1 and -1 <= deltaY <= 1:
                             fields = self.normalizeBattleFields()
-                            moves = self.battle.move(fields, fromX, fromY, toX, toY)
-                            self.mover = PieceMover(self.clicked, moves, self.battleFields)
+                            moves = self.battle.move(
+                                fields, fromX, fromY, toX, toY)
+                            self.mover = PieceMover(
+                                self.clicked, moves, self.battleFields)
                             self.mover.start()
                             self.isMoving = True
                         self.battleTurn = self.battleTurn ^ 1

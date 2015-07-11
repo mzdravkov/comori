@@ -1,18 +1,20 @@
-from player import Player
-from board import Board
-from warrior import Warrior
-from king import King
-from peasant import Peasant
-from ship import Ship
-from building import Building
-from battle import Battle
+from core.player import Player
+from core.board import Board
+from core.warrior import Warrior
+from core.king import King
+from core.peasant import Peasant
+from core.ship import Ship
+from core.building import Building
+from core.battle import Battle
 
 GARDEN_INCOME = 1
-PEASANT_PRICE =  2
+PEASANT_PRICE = 2
 WARRIOR_PRICE = 5
 SHIP_PRICE = 25
 
+
 class Game:
+
     def __init__(self,):
         self.board = Board()
         self.players = [Player('0'), Player('1')]
@@ -150,6 +152,6 @@ class Game:
 
     def changeTurn(self):
         if self.turn == 1:
-            self.turn = -1;
+            self.turn = -1
         self.turn += 1
         self.__onTurnStart()

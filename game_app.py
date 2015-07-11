@@ -1,8 +1,6 @@
-# from panda3d.core import TransparencyAttrib
 from panda3d.core import PointLight
 from panda3d.core import AmbientLight
 from panda3d.core import VBase4
-# from panda3d.core import LPoint3, LVector3, BitMask32, Vec4
 from panda3d.core import BitMask32
 from panda3d.core import Vec4
 from panda3d.core import Texture
@@ -13,32 +11,32 @@ from panda3d.core import CollisionHandlerQueue, CollisionRay
 from panda3d.core import TextNode
 from direct.gui.OnscreenText import OnscreenText
 from direct.showbase import DirectObject
-# from direct.gui.DirectGui import *
-# from direct.gui.OnscreenImage import OnscreenImage
-# from panda3d.core import TransparencyAttrib
-# from panda3d.core import Camera
-# from panda3d.core import NodePath
 
-from game import Game
-from figure import Figure
-from ship import Ship
-from building import Building
+from core.game import Game
+from core.figure import Figure
+from core.ship import Ship
+from core.building import Building
 import math
 import time
 
 HIGHLIGHT_SCALE = 1.25
-REVERSE_HIGHLIGHT_SCALE = 1/HIGHLIGHT_SCALE
+REVERSE_HIGHLIGHT_SCALE = 1 / HIGHLIGHT_SCALE
+
 
 def dotproduct(v1, v2):
-  return sum((a*b) for a, b in zip(v1, v2))
+    return sum((a * b) for a, b in zip(v1, v2))
+
 
 def length(v):
-  return math.sqrt(dotproduct(v, v))
+    return math.sqrt(dotproduct(v, v))
+
 
 def angle(v1, v2):
-  return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))
+    return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))
+
 
 class GameEventHandler(DirectObject.DirectObject):
+
     def __init__(self, app):
         self.accept('mouse1', app.handle, ['left_click'])
         self.accept('wheel_up', app.handle, ['wheel_up'])
@@ -49,7 +47,9 @@ class GameEventHandler(DirectObject.DirectObject):
         for i in range(1, 10):
             self.accept(str(i), app.handle, [str(i)])
 
+
 class GameApp:
+
     def __init__(self):
         self.gameEventHandler = GameEventHandler(self)
         self.camLimits = ((-5, 5), (-6.5, 5), (1, 10))
@@ -139,7 +139,7 @@ class GameApp:
         cnodePath.node().addSolid(cs)
         island.bay.model = circle
         self.modelToSeaField[circle.getKey()] = island.bay
-        degree = angle((0, 1), island.pos)*180/math.pi
+        degree = angle((0, 1), island.pos) * 180 / math.pi
         if island.pos[0] > 0:
             degree *= -1
         if not suppressRot:
@@ -155,15 +155,18 @@ class GameApp:
                     figure.model = self.loader.loadModel('models/ship')
                     figure.model.reparentTo(field.model)
                     cs = CollisionSphere(1.5, 0, 1, 1.3)
-                    cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
+                    cnodePath = figure.model.attachNewNode(
+                        CollisionNode('cnode'))
                     cnodePath.node().addSolid(cs)
                     # cnodePath.show()
                     cs = CollisionSphere(0, 0, 1.4, 1.3)
-                    cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
+                    cnodePath = figure.model.attachNewNode(
+                        CollisionNode('cnode'))
                     cnodePath.node().addSolid(cs)
                     # cnodePath.show()
                     cs = CollisionSphere(-1.8, 0, 1, 1)
-                    cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
+                    cnodePath = figure.model.attachNewNode(
+                        CollisionNode('cnode'))
                     cnodePath.node().addSolid(cs)
                     # cnodePath.show()
                     figure.model.setScale(1.4)
@@ -176,14 +179,15 @@ class GameApp:
                     figure.model = self.loader.loadModel('models/warrior100')
                     figure.model.reparentTo(field.model)
                     cs = CollisionSphere(0, -.35, 7, 1)
-                    cnodePath = figure.model.attachNewNode(CollisionNode('cnode'))
+                    cnodePath = figure.model.attachNewNode(
+                        CollisionNode('cnode'))
                     cnodePath.node().addSolid(cs)
                     figure.model.setScale(0.35)
                     figure.model.setTag('highlightable', 'true')
                     figure.model.setTag('clickable', 'true')
                     self.modelToFigure[figure.model.getKey()] = figure
 
-                col = 256*int(player.color)
+                col = 256 * int(player.color)
                 # set figure title
                 title = TextNode(str(figure.model.getKey()) + '_title')
                 title.setText(type(figure).__name__)
@@ -227,7 +231,7 @@ class GameApp:
         cnodePath.node().addSolid(cs)
         # cnodePath.show()
 
-        col = 256*int(player.color)
+        col = 256 * int(player.color)
         # set building title
         title = TextNode(str(building.model.getKey()) + '_title')
         title.setText(building.building)
@@ -283,29 +287,30 @@ class GameApp:
             self.drawFigures()
             self.drawSeaways()
 
-            self.turn = OnscreenText(text = 'Black\'s turn.',
-                                     pos = (0.06, -0.1),
-                                     align = TextNode.ALeft,
-                                     parent = base.a2dTopLeft,
-                                     scale = 0.06)
-            self.resources = OnscreenText(text = 'Resources: ',
-                                          pos = (0.08, -0.2),
-                                          align = TextNode.ALeft,
-                                          parent = base.a2dTopLeft,
-                                          scale = 0.06)
+            self.turn = OnscreenText(text='Black\'s turn.',
+                                     pos=(0.06, -0.1),
+                                     align=TextNode.ALeft,
+                                     parent=base.a2dTopLeft,
+                                     scale=0.06)
+            self.resources = OnscreenText(text='Resources: ',
+                                          pos=(0.08, -0.2),
+                                          align=TextNode.ALeft,
+                                          parent=base.a2dTopLeft,
+                                          scale=0.06)
             self.gameReady = True
 
         player = 'Black'
         if game.turn == 1:
             player = 'White'
         self.turn.setText(player + '\'s turn.')
-        resourcesText = 'Resources: ' + str(self.game.currentPlayer().resources)
+        resourcesText = 'Resources: ' + \
+            str(self.game.currentPlayer().resources)
         self.resources.setText(resourcesText)
         if self.game.loosers != None:
-            message = OnscreenText(text = 'End of the game',
-                                   align = TextNode.ACenter,
-                                   pos = (0, 0),
-                                   scale = 0.1)
+            message = OnscreenText(text='End of the game',
+                                   align=TextNode.ACenter,
+                                   pos=(0, 0),
+                                   scale=0.1)
             if self.game.loosers == 'black':
                 message.setText('White wins!')
             elif self.game.loosers == 'white':
@@ -391,23 +396,23 @@ class GameApp:
     @staticmethod
     def unboardingTransformations(figure):
         figure.model.setScale(0.35)
-        figure.model.setPos(0,0,0)
+        figure.model.setPos(0, 0, 0)
 
     def drawSongsMenu(self, songs, field):
         if self.songMenu:
             return
-        self.songMenu = [(OnscreenText(text = 'Choose song:',
-                                      pos = (-0.7, -0.1),
-                                      align = TextNode.ALeft,
-                                      parent = base.a2dTopRight,
-                                      scale = 0.06), field)]
+        self.songMenu = [(OnscreenText(text='Choose song:',
+                                       pos=(-0.7, -0.1),
+                                       align=TextNode.ALeft,
+                                       parent=base.a2dTopRight,
+                                       scale=0.06), field)]
         i = 1
         for song in songs:
-            item = OnscreenText(text = str(i) + ') Song of ' + song,
-                                pos = (-0.7, -0.1 - i*0.1),
-                                align = TextNode.ALeft,
-                                parent = base.a2dTopRight,
-                                scale = 0.06)
+            item = OnscreenText(text=str(i) + ') Song of ' + song,
+                                pos=(-0.7, -0.1 - i * 0.1),
+                                align=TextNode.ALeft,
+                                parent=base.a2dTopRight,
+                                scale=0.06)
             i += 1
             self.songMenu.append((item, song))
 
@@ -418,20 +423,20 @@ class GameApp:
             self.songMenu = None
 
     def drawBuildMenu(self, buildings, field):
-        self.buildMenu = [(OnscreenText(text = 'Choose building:',
-                                        pos = (-0.7, -0.1),
-                                        align = TextNode.ALeft,
-                                        parent = base.a2dTopRight,
-                                        scale = 0.06), field)]
+        self.buildMenu = [(OnscreenText(text='Choose building:',
+                                        pos=(-0.7, -0.1),
+                                        align=TextNode.ALeft,
+                                        parent=base.a2dTopRight,
+                                        scale=0.06), field)]
         i = 1
         for building in buildings:
             price = Building.buildingPrice(building)
             text = '{0}) {1} ({2})'.format(str(i), building, price)
-            item = OnscreenText(text = text,
-                                pos = (-0.7, -0.1 - i*0.1),
-                                align = TextNode.ALeft,
-                                parent = base.a2dTopRight,
-                                scale = 0.06)
+            item = OnscreenText(text=text,
+                                pos=(-0.7, -0.1 - i * 0.1),
+                                align=TextNode.ALeft,
+                                parent=base.a2dTopRight,
+                                scale=0.06)
             i += 1
             self.buildMenu.append((item, building))
 
@@ -451,19 +456,19 @@ class GameApp:
                     self.clicked = ship
                     return
                 if (figure.field.island == ship.field.island and
-                    figure.player == ship.player and
-                    None in ship.fields):
-                        figure.field.put(None)
-                        pos = 0
-                        if ship.fields[0] == None:
-                            ship.fields[0] = figure
-                        else:
-                            ship.fields[1] = figure
-                            pos = 1
-                        figure.field = ship
-                        figure.model.reparentTo(ship.model)
-                        self.boardingTransformations(figure, pos)
-                        figure.hasMoved = True
+                        figure.player == ship.player and
+                        None in ship.fields):
+                    figure.field.put(None)
+                    pos = 0
+                    if ship.fields[0] == None:
+                        ship.fields[0] = figure
+                    else:
+                        ship.fields[1] = figure
+                        pos = 1
+                    figure.field = ship
+                    figure.model.reparentTo(ship.model)
+                    self.boardingTransformations(figure, pos)
+                    figure.hasMoved = True
             if ship.player == self.game.currentPlayer():
                 self.clicked = ship
         else:
@@ -639,4 +644,5 @@ class GameApp:
             factor = HIGHLIGHT_SCALE * hovered.getScale()[0]
             hovered.setScale(factor)
 
-# TODO: change collision solids with more appririate on few places (ships, figures?)
+# TODO: change collision solids with more appririate on few places (ships,
+# figures?)
